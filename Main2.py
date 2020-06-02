@@ -72,6 +72,7 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
                     agent[0] = random.choice(range(height))
                     agent[1] = random.choice(range(width))
 
+        #Add image for later creating a process gif
         gif_images.append(copy.deepcopy(np.copy(canvas.get_image())))
 
     return canvas
@@ -95,14 +96,14 @@ if __name__ == "__main__":
     # paper uses w*h / 5
     num_agents = int((width * height) / 500)
     # maximum value of color distance that makes an agent happy
-    alpha = 50
+    alpha = 20
     # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
     used_colors_alpha = 10
     brush_size = 25
     # epochs per target color
     epochs = 5
     # number of colors to target and run SDS on
-    num_colors = 70
+    num_colors = 50
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 

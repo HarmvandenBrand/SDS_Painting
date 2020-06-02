@@ -89,7 +89,7 @@ class Canvas:
                             max_brush_size // 2: x + (max_brush_size // 2)]
 
     def get_image(self):
-        return self.canvas[self.canvas_slice]
+        return np.array(self.canvas[self.canvas_slice], dtype=np.uint8)
 
 
 class Brush:
