@@ -87,6 +87,58 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
     return canvas
 
 
+def SDS_rebels(agent_locs, rebel_locs, target_color, alpha, canvas, epochs, brush):
+
+    num_agents = len(agent_locs)
+    num_rebels = len(rebel_locs)
+
+    agent_locs.extend(rebel_locs)
+
+    height, width = np.shape(canvas.get_image())[:2]
+    active_agents = 0
+
+    initial_brush_size = brush.size
+
+    for epoch in range(epochs):
+        if active_agents == num_agents:
+            break
+        print("epoch: ", epoch)
+        for agent in agent_locs:
+            if is_active(agent, canvas, target_color, alpha):
+                agent[2] = True
+                active_agents += 1
+
+        brush.resize(initial_brush_size * (1 - int(active_agents / num_agents)))
+        # brush_size = brush_size * (1 - int(active_agents / num_agents))
+        # brush.resize(brush_size)
+
+        for i, agent in enumerate(agent_locs):
+            if not agent[2]:
+                numbers = list(range(0, i)) + list(range(i + 1, len(agent_locs)))
+                r = random.choice(numbers)
+                if agent_locs[r][2]:
+                    active_agent_x = agent_locs[r][1]
+                    active_agent_y = agent_locs[r][0]
+                    agent[0] = trunc_gauss(active_agent_y, 5, 0, height - 1)
+                    agent[1] = trunc_gauss(active_agent_x, 5, 0, width - 1)
+
+                    # Paint
+                    brush.color = canvas.original_image[active_agent_y, active_agent_x]
+                    brush.stroke(canvas, agent[0], agent[1])
+
+                else:
+                    agent[0] = random.choice(range(height))
+                    agent[1] = random.choice(range(width))
+
+        #Add image for later creating a process gif
+        gif_images.append(copy.deepcopy(np.copy(canvas.get_image())))
+
+    brush.resize(initial_brush_size)
+
+    return canvas
+
+
+
 def color_distance(color1, color2):
     if not (len(color1) == len(color2) and len(color1) == 3):
         raise TypeError(f"Either of {color1} or {color2} is not a valid color.")
@@ -104,21 +156,22 @@ if __name__ == "__main__":
 
     # paper uses w*h / 5
     num_agents = int((width * height) / 500)
+    num_rebels = int(num_agents/20)
     # maximum value of color distance that makes an agent happy
     alpha = 20
     brush_size = 12
     # epochs per target color
     epochs = 2
     # number of colors to target and run SDS on
-    num_colors = 750
+    num_colors = 250
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 
 
-    # Extension toggles
+    """Extension toggles"""
     brushsize_annealing = True
     used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
-
+    david_bowie = False
 
     if brushsize_annealing:
         brush_size *= 2
@@ -144,6 +197,10 @@ if __name__ == "__main__":
         agent_locs = [[x, y, False] for _ in range(num_agents) for x in random.choices(range(height)) for y in
                       random.choices(range(width))]
 
+        if david_bowie:
+            rebels = [[x, y, True] for _ in range(num_rebels) for x in random.choices(range(height)) for y in
+                          random.choices(range(width))]
+
         """Target color selection"""
 
         # Color is randomly sampled from the input image
@@ -160,7 +217,10 @@ if __name__ == "__main__":
 
         """Running SDS"""
 
-        canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush)
+        if david_bowie:
+            canvas = SDS_rebels(agent_locs, rebels, target_color, alpha, canvas, epochs, brush)
+        else:
+            canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush)
 
         print(f"Painted color {i+1}: {target_color}.")
 
