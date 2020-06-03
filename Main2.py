@@ -120,7 +120,6 @@ if __name__ == "__main__":
     used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
 
 
-
     if brushsize_annealing:
         brush_size *= 2
 
