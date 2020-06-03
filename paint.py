@@ -95,13 +95,16 @@ class Canvas:
 class Brush:
 
     def __init__(self, size, color, opacity=1, opacity_falloff=None):
-        self.size = size//2
+        self.size = size
         self.color = color
         self.opacity = opacity
         self.opacity_falloff = opacity_falloff
 
     def _blend(self, area):
         raise NotImplementedError
+
+    def resize(self, new_size):
+        self.size = new_size
 
     def stroke(self, canvas: Canvas, y, x):
         # correct for canvas border offset

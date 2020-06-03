@@ -45,6 +45,8 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
     height, width = np.shape(canvas.get_image())[:2]
     active_agents = 0
 
+    initial_brush_size = brush.size
+
     for epoch in range(epochs):
         if active_agents == num_agents:
             break
@@ -53,6 +55,11 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
             if is_active(agent, canvas, target_color, alpha):
                 agent[2] = True
                 active_agents += 1
+
+        brush.resize(initial_brush_size * (1 - int(active_agents / num_agents)))
+        # brush_size = brush_size * (1 - int(active_agents / num_agents))
+        # brush.resize(brush_size)
+
 
         for i, agent in enumerate(agent_locs):
             if not agent[2]:
@@ -74,6 +81,8 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
 
         #Add image for later creating a process gif
         gif_images.append(copy.deepcopy(np.copy(canvas.get_image())))
+
+    brush.resize(initial_brush_size)
 
     return canvas
 
@@ -97,15 +106,23 @@ if __name__ == "__main__":
     num_agents = int((width * height) / 500)
     # maximum value of color distance that makes an agent happy
     alpha = 20
-    # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
-    used_colors_alpha = 10
-    brush_size = 25
+    brush_size = 12
     # epochs per target color
-    epochs = 5
+    epochs = 2
     # number of colors to target and run SDS on
-    num_colors = 50
+    num_colors = 750
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
+
+
+    # Extension toggles
+    brushsize_annealing = True
+    used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
+
+
+
+    if brushsize_annealing:
+        brush_size *= 2
 
     # Initialize brush
     brush = paint.BrushRound(brush_size, [0, 0, 0], opacity=1)
@@ -120,6 +137,7 @@ if __name__ == "__main__":
     seed = random.randint(0, 1_000_000_000)
     print(f"Using seed {seed}.")
     random.seed(seed)
+
 
     for i in range(num_colors):
 
@@ -146,6 +164,9 @@ if __name__ == "__main__":
         canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush)
 
         print(f"Painted color {i+1}: {target_color}.")
+
+        if brushsize_annealing:
+            brush.resize(int(brush_size * (1 - (i/num_colors))))
 
     display_image(canvas.get_image())
     imageio.imwrite("result_mao1.png", canvas.get_image())
