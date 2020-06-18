@@ -40,7 +40,7 @@ def is_active(agent, canvas, target_color, alpha):
 
 
 # The big function
-def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush, continuous, max_alpha):
+def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
 
     height, width = np.shape(canvas.get_image())[:2]
     active_agents = 0
@@ -72,20 +72,8 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush, cont
                     agent[1] = trunc_gauss(active_agent_x, 5, 0, width - 1)
 
                     # Paint
-                    if continuous:
-                        dist = agent[2]
-                        if dist < alpha:
-                            op = 1
-                        else:
-                            op = 1 - ((dist - alpha) / (max_alpha - alpha))
-
-                        brush.color = canvas.original_image[active_agent_y, active_agent_x]
-                        brush.opacity = op
-                        brush.stroke(canvas, agent[0], agent[1])
-
-                    else:
-                        brush.color = canvas.original_image[active_agent_y, active_agent_x]
-                        brush.stroke(canvas, agent[0], agent[1])
+                    brush.color = canvas.original_image[active_agent_y, active_agent_x]
+                    brush.stroke(canvas, agent[0], agent[1])
 
                 else:
                     agent[0] = random.choice(range(height))
@@ -108,7 +96,7 @@ def color_distance(color1, color2):
 if __name__ == "__main__":
 
     # Load input image
-    input_img = imageio.imread('Input_Images/MountainScape_Square_750.jpg')
+    input_img = imageio.imread('mao.jpg')
     height, width = input_img.shape[0], input_img.shape[1]
 
     # any brush strokes with a size above this value are not guaranteed to paint. Adjust as you see fit
@@ -118,12 +106,11 @@ if __name__ == "__main__":
     num_agents = int((width * height) / 500)
     # maximum value of color distance that makes an agent happy
     alpha = 20
-    max_alpha = 500
     brush_size = 12
     # epochs per target color
-    epochs = 5
+    epochs = 2
     # number of colors to target and run SDS on
-    num_colors = 150
+    num_colors = 750
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 
@@ -132,8 +119,6 @@ if __name__ == "__main__":
     brushsize_annealing = True
     used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
 
-    continuous = True
-    active_threshold = 10000
 
     if brushsize_annealing:
         brush_size *= 2
@@ -175,7 +160,7 @@ if __name__ == "__main__":
 
         """Running SDS"""
 
-        canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush, continuous, max_alpha)
+        canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush)
 
         print(f"Painted color {i+1}: {target_color}.")
 
