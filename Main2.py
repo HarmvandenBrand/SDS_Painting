@@ -180,29 +180,29 @@ if __name__ == "__main__":
     # paper uses w*h / 5
     num_agents = int((width * height) / 50)
     num_rebels = int(num_agents/20)
-    num_black_swarm = int(num_agents/50)
+    num_black_swarm = int(num_agents/20)
     # maximum value of color distance that makes an agent happy
-    alpha = 25
-    brush_size = 24
+    alpha = 50
+    brush_size = 5
     # epochs per target color
-    epochs = 5
+    epochs = 10
     # number of colors to target and run SDS on
-    num_colors = 50
+    num_colors = 5
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 
 
     """Extension toggles"""
-    brushsize_annealing = True
-    used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
-    david_bowie = True
-    black_swarm = False
+    brushsize_annealing = False
+    used_colors_alpha = 10 #  The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
+    david_bowie = False
+    black_swarm = True
 
     if brushsize_annealing:
         brush_size *= 2
 
     # Initialize brush
-    brush = paint.BrushRound(brush_size, [0, 0, 0], opacity=0.5)
+    brush = paint.BrushRound(brush_size, [0, 0, 0], opacity=1)
     # brush = paint.BrushSquare(br  ush_size, [0, 0, 0], opacity=1)
     # brush = paint.BrushSquare(brush_size, [0, 0, 0], opacity=0.2, opacity_falloff='cornered')
     # brush = paint.BrushSquare(brush_size, [0, 0, 0], opacity=1, opacity_falloff='linear')
@@ -263,4 +263,4 @@ if __name__ == "__main__":
     display_image(canvas.get_image())
     imageio.imwrite("result.png", canvas.get_image())
 
-    make_gif(gif_images)
+    # make_gif(gif_images)
