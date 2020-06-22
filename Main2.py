@@ -31,6 +31,69 @@ def trunc_gauss(mu, sigma, bottom, top):
         a = int(random.gauss(mu, sigma))
     return a
 
+    def is_active_convolution(agent, canvas, target_color, alpha):
+        # image size
+        h, w = canvas.original_image.shape
+
+        # agent location
+        x, y = agent[0], agent[1]
+
+        # convolution mask
+        scharr = np.array([[-3 - 3j, 0 - 10j, +3 - 3j],
+                           [-10 + 0j, 0 + 0j, +10 + 0j],
+                           [-3 + 3j, 0 + 10j, +3 + 3j]])
+
+        # indexes of block around agent position
+        indexes = np.array([[(x - 1, y + 1), (x, y + 1), (x + 1, y + 1)],
+                            [(x - 1, y), (x, y), (x + 1, y)],
+                            [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]])
+        block = np.full((3, 3), 0.5)
+
+        # fill the block with values
+        for i in range(3):
+            for j in range(3):
+                ind_x, ind_y = indexes[i, j]
+                if ind_x != 0 and ind_x != h and ind_y != 0 and ind_y != w:
+                    block[i, j] = canvas.original_image[ind_x, ind_y]
+
+        # convolve the block with mask and return the value of position of the agent
+        test = convolve2d(block, scharr, boundary='symm', mode='same')
+        test = np.absolute(test)
+        activity = test[1, 1]
+        return activity
+
+
+def is_active_multiplication(agent, canvas, target_color, alpha):
+    # image size
+    h, w = canvas.original_image.shape
+
+    # location of agent
+    x, y = agent[0], agent[1]
+
+    # multiplication masks
+    gx = [[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]]
+    gy = [[-3, 10, -3], [0, 0, 0], [3, 10, 3]]
+
+    # indexes of block around agent position
+    indexes = np.array([[(x - 1, y + 1), (x, y + 1), (x + 1, y + 1)],
+                        [(x - 1, y), (x, y), (x + 1, y)],
+                        [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]])
+
+    # fill the block with values
+    block = np.full((3, 3), 0.5)
+    for i in range(3):
+        for j in range(3):
+            ind_x, ind_y = indexes[i, j]
+            if ind_x != 0 and ind_x != h and ind_y != 0 and ind_y != w:
+                block[i, j] = canvas.original_image[ind_x, ind_y]
+
+    # multiply the block with mask and take the sum
+    s1 = np.sum(np.sum(np.multiply(gx, block)))
+    s2 = np.sum(np.sum(np.multiply(gy, block)))
+
+    # RMSE of both horizontal and vertical mask result
+    mag = np.sqrt(s1 ** 2 + s2 ** 2)
+    return mag
 
 # Check whether an agent is active depending on the color distance
 def is_active(agent, canvas, target_color, alpha):
