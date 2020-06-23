@@ -72,8 +72,9 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
                     agent[1] = trunc_gauss(active_agent_x, 5, 0, width - 1)
 
                     # Paint
-                    brush.color = canvas.original_image[active_agent_y, active_agent_x]
-                    brush.stroke(canvas, agent[0], agent[1])
+                    if is_active(agent, canvas, target_color, alpha):
+                        brush.color = canvas.original_image[active_agent_y, active_agent_x]
+                        brush.stroke(canvas, agent[0], agent[1])
 
                 else:
                     agent[0] = random.choice(range(height))
@@ -103,14 +104,14 @@ if __name__ == "__main__":
     MAX_BRUSH_SIZE = 400
 
     # paper uses w*h / 5
-    num_agents = int((width * height) / 500)
+    num_agents = int((width * height) / 50)
     # maximum value of color distance that makes an agent happy
-    alpha = 20
-    brush_size = 12
+    alpha = 10
+    brush_size = 5
     # epochs per target color
-    epochs = 2
+    epochs = 10
     # number of colors to target and run SDS on
-    num_colors = 750
+    num_colors = 5
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 
