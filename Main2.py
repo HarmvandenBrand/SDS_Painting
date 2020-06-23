@@ -115,22 +115,22 @@ if __name__ == "__main__":
     MAX_BRUSH_SIZE = 400
 
     # paper uses w*h / 5
-    num_agents = int((width * height) / 500)
+    num_agents = int((width * height) / 50)
     # maximum value of color distance that makes an agent happy
-    alpha = 20
+    alpha = 10
     max_alpha = 500
-    brush_size = 12
+    brush_size = 5
     # epochs per target color
-    epochs = 5
+    epochs = 10
     # number of colors to target and run SDS on
-    num_colors = 150
+    num_colors = 25
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 
 
     # Extension toggles
-    brushsize_annealing = True
-    used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
+    brushsize_annealing = False
+    used_colors_alpha = 10 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
 
     continuous = True
 
@@ -147,7 +147,8 @@ if __name__ == "__main__":
     gif_images = []
 
     # Use a seed to be able to reproduce results
-    seed = random.randint(0, 1_000_000_000)
+    # seed = random.randint(0, 1_000_000_000)
+    seed = 236497274
     print(f"Using seed {seed}.")
     random.seed(seed)
 
@@ -182,6 +183,6 @@ if __name__ == "__main__":
             brush.resize(int(brush_size * (1 - (i/num_colors))))
 
     display_image(canvas.get_image())
-    imageio.imwrite("result_mao1.png", canvas.get_image())
+    imageio.imwrite("result.png", canvas.get_image())
 
     make_gif(gif_images)
