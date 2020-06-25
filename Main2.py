@@ -82,8 +82,9 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
                     agent[1] = trunc_gauss(active_agent_x, 5, 0, width - 1)
 
                     # Paint
-                    brush.color = canvas.original_image[active_agent_y, active_agent_x]
-                    brush.stroke(canvas, agent[0], agent[1])
+                    if is_active(agent, canvas, target_color, alpha):
+                        brush.color = canvas.original_image[active_agent_y, active_agent_x]
+                        brush.stroke(canvas, agent[0], agent[1])
 
                 else:
                     agent[0] = random.choice(range(height))
@@ -133,8 +134,9 @@ def SDS_rebels(agent_locs, rebel_locs, target_color, alpha, canvas, epochs, brus
                     agent[1] = trunc_gauss(active_agent_x, 5, 0, width - 1)
 
                     # Paint
-                    brush.color = canvas.original_image[active_agent_y, active_agent_x]
-                    brush.stroke(canvas, agent[0], agent[1])
+                    if is_active(agent, canvas, target_color, alpha):
+                        brush.color = canvas.original_image[active_agent_y, active_agent_x]
+                        brush.stroke(canvas, agent[0], agent[1])
 
                 else:
                     agent[0] = random.choice(range(height))
@@ -171,14 +173,14 @@ def SDS_black_swarm(agent_locs, black_locs, target_color, alpha, canvas, epochs,
 if __name__ == "__main__":
 
     # Load input image
-    input_img = imageio.imread('Input_Images/MountainScape_Square_750.jpg')
+    input_img = imageio.imread('Input_Images/psychedelic_750.jpg')
     height, width = input_img.shape[0], input_img.shape[1]
 
     # any brush strokes with a size above this value are not guaranteed to paint. Adjust as you see fit
     MAX_BRUSH_SIZE = 400
 
     # paper uses w*h / 5
-    num_agents = int((width * height) / 50)
+    num_agents = int((width * height) / 5)
     num_rebels = int(num_agents/20)
     num_black_swarm = int(num_agents/20)
     # maximum value of color distance that makes an agent happy
@@ -196,7 +198,7 @@ if __name__ == "__main__":
     brushsize_annealing = False
     used_colors_alpha = 10 #  The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
     david_bowie = False
-    black_swarm = True
+    black_swarm = False
 
     if brushsize_annealing:
         brush_size *= 2
@@ -212,12 +214,18 @@ if __name__ == "__main__":
 
     # Use a seed to be able to reproduce results
     seed = random.randint(0, 1_000_000_000)
-    # seed = 6916708
+    # seed = 98749832
     print(f"Using seed {seed}.")
     random.seed(seed)
 
 
     for i in range(num_colors):
+    # market: for i, color in enumerate([[33, 39, 63], [43, 65, 112], [47, 32, 13], [67, 56, 50], [52, 79, 134]]):
+    # for i, color in enumerate([[90, 60, 36], [145, 90, 69], [98, 63, 43], [219, 176, 121], [148, 120, 73]]): #frogger
+    # for i, color in enumerate([[235, 216, 236], [46, 90, 153], [102, 144, 204], [56, 92, 150], [87, 118, 172]]): #mountain
+    # for i, color in enumerate([[200, 71, 3], [68, 14, 128], [161, 112, 98], [3, 213, 112], [53, 69, 182]]): #psychedelic
+
+
 
         # Initialize agents
         agent_locs = [[x, y, False] for _ in range(num_agents) for x in random.choices(range(height)) for y in
@@ -237,6 +245,7 @@ if __name__ == "__main__":
         y = random.randint(0, height - 1)
         x = random.randint(0, width - 1)
         target_color = input_img[y][x]
+        # target_color = color
 
         while not all(color_distance(target_color, used_color) > used_colors_alpha for used_color in used_colors):
             y = random.randint(0, height - 1)
