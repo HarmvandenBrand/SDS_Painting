@@ -1,77 +1,9 @@
 import numpy as np
 
-def merge_colors(bg, color, opacity):
+
+def merge_colors(bg: np.ndarray, color: np.ndarray, opacity):
     """Blend colors to emulate opacity"""
-
-    color3 = [0, 0, 0]
-    for i in range(3):
-        color3[i] = int(bg[i] + opacity * (color[i] - bg[i]))
-    return color3
-
-def merge_colors2(bg: np.ndarray, color: np.ndarray, opacity):
     return (1-opacity)*bg + opacity*color
-
-
-def cornercheck(x, y, l):
-    """Checks whether a given x,y-position indicates a corner"""
-
-    if (x == 0 and y == 0):
-        return True
-    if (x == 0 and y == l):
-        return True
-    if (x == l and y == 0):
-        return True
-    if (x == l and y == l):
-        return True
-    return False
-
-
-def paint_round(target, y, x, color, brush_size):
-
-    h, w = target.shape[0], target.shape[1]
-    target[y][x] = color
-    if brush_size > 1:
-        for i in range(brush_size - 1):
-            vierkant = i + 1
-            x_range = np.arange(x - vierkant, x + vierkant + 1)
-            y_range = np.arange(y - vierkant, y + vierkant + 1)
-            lengte = len(x_range)
-            for ix in range(len(x_range)):
-                for iy in range(len(y_range)):
-                    if (ix == 0) or (iy == 0) or (ix == lengte - 1) or (iy == lengte - 1):
-                        if (y_range[iy] > 0) & (y_range[iy] < h) & (x_range[ix] > 0) & (x_range[ix] < w):
-                            if (x-x_range[ix])**2 + (y-y_range[iy])**2 <= brush_size**2:
-                                target[y_range[iy]][x_range[ix]] = color
-
-
-def paint_opacity(target, y, x, color, brush_size):
-    """Paint a specific pixel of a target image. Ensure that the color is an RGB triplet of integers. Returns true to be able to short-circuit it a lambday function"""
-
-    h, w = target.shape[0], target.shape[1]
-    opacity = 1
-    target[y][x] = merge_colors(target[y][x], color, opacity)
-    reduce_opacity = 1 / brush_size
-    new_color = [0, 0, 0]
-
-    if brush_size > 1:
-        for i in range(brush_size):
-            opacity = opacity - reduce_opacity
-            for j in range(3):
-                new_color[j] = 255 - opacity * (255 - color[j])
-            vierkant = i + 1
-            x_range = np.arange(x - vierkant, x + vierkant + 1)
-            y_range = np.arange(y - vierkant, y + vierkant + 1)
-            lengte = len(x_range)
-            for ix in range(len(x_range)):
-                for iy in range(len(y_range)):
-                    if (ix == 0) or (iy == 0) or (ix == lengte - 1) or (iy == lengte - 1):
-                        if (y_range[iy] > 0) & (y_range[iy] < h) & (x_range[ix] > 0) & (x_range[ix] < w):
-                            if cornercheck(ix, iy, lengte - 1):
-                                target[y_range[iy]][x_range[ix]] = merge_colors(target[y_range[iy]][x_range[ix]],
-                                                                                new_color, opacity - reduce_opacity)
-                            else:
-                                target[y_range[iy]][x_range[ix]] = merge_colors(target[y_range[iy]][x_range[ix]],
-                                                                                new_color, opacity)
 
 
 class Canvas:
@@ -169,7 +101,7 @@ class BrushSquare(Brush):
             for y in range(np.shape(area)[0]):
                 for x in range(np.shape(area)[1]):
                     opacity = opacity_step * (min(y, x) + 1)
-                    area[y][x] = merge_colors2(area[y][x], self.color, opacity)
+                    area[y][x] = merge_colors(area[y][x], self.color, opacity)
 
             return np.array(area, dtype=int)
 
@@ -184,7 +116,7 @@ class BrushSquare(Brush):
                 for x in range(np.shape(area)[1]):
                     # The distance function used below is, I have been informed, the 'Chebyshev Distance'.
                     opacity = self.opacity - opacity_step * (max(abs(y - center), abs(x - center)))
-                    area[y][x] = merge_colors2(area[y][x], self.color, opacity)
+                    area[y][x] = merge_colors(area[y][x], self.color, opacity)
 
             return np.array(area, dtype=int)
 
