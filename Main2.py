@@ -159,7 +159,7 @@ def color_distance(color1, color2):
 if __name__ == "__main__":
 
     # Load input image
-    input_img = imageio.imread('mao.jpg')
+    input_img = imageio.imread('Input_Images/Frogger_750.jpg')
     height, width = input_img.shape[0], input_img.shape[1]
 
     # any brush strokes with a size above this value are not guaranteed to paint. Adjust as you see fit
