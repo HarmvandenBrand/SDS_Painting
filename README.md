@@ -2,6 +2,7 @@
 
 Repository for a Natural Computing project
 
+Different extensions, as discussed in the report, are on different branches of this repository.
 
 ___
 
@@ -24,3 +25,5 @@ There are some parameters in the main function of Main.py that you may want to p
 `num_colors` this value indicates the number of target colors the algorithm cycles through before finishing. Setting this parameter to, for example, 5 will make the algorithm select 5 random colors from the input image to use as target colors for 5 cycles of SDS. This parameter has a big effect on the duration of the algorithm.
 
 `brushsize_annealing` this toggle indicates whether or not brushsize annealing should be used. If set to `True`, brush size will linearly diminish during the algorithm.
+
+
