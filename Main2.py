@@ -12,6 +12,10 @@ import paint
 
 
 # Function to display an image
+from scipy.signal import convolve2d
+from skimage import color
+
+
 def display_image(array):
     plt.imshow(array)
     plt.show()
@@ -31,36 +35,36 @@ def trunc_gauss(mu, sigma, bottom, top):
         a = int(random.gauss(mu, sigma))
     return a
 
-    def is_active_convolution(agent, canvas, target_color, alpha):
-        # image size
-        h, w = canvas.original_image.shape
+def is_active_convolution(agent, canvas, target_color, alpha):
+    # image size
+    h, w = canvas.original_image.shape
 
-        # agent location
-        x, y = agent[0], agent[1]
+    # agent location
+    x, y = agent[0], agent[1]
 
-        # convolution mask
-        scharr = np.array([[-3 - 3j, 0 - 10j, +3 - 3j],
-                           [-10 + 0j, 0 + 0j, +10 + 0j],
-                           [-3 + 3j, 0 + 10j, +3 + 3j]])
+    # convolution mask
+    scharr = np.array([[-3 - 3j, 0 - 10j, +3 - 3j],
+                       [-10 + 0j, 0 + 0j, +10 + 0j],
+                       [-3 + 3j, 0 + 10j, +3 + 3j]])
 
-        # indexes of block around agent position
-        indexes = np.array([[(x - 1, y + 1), (x, y + 1), (x + 1, y + 1)],
-                            [(x - 1, y), (x, y), (x + 1, y)],
-                            [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]])
-        block = np.full((3, 3), 0.5)
+    # indexes of block around agent position
+    indexes = np.array([[(x - 1, y + 1), (x, y + 1), (x + 1, y + 1)],
+                        [(x - 1, y), (x, y), (x + 1, y)],
+                        [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]])
+    block = np.full((3, 3), 0.5)
 
-        # fill the block with values
-        for i in range(3):
-            for j in range(3):
-                ind_x, ind_y = indexes[i, j]
-                if ind_x != 0 and ind_x != h and ind_y != 0 and ind_y != w:
-                    block[i, j] = canvas.original_image[ind_x, ind_y]
+    # fill the block with values
+    for i in range(3):
+        for j in range(3):
+            ind_x, ind_y = indexes[i, j]
+            if ind_x != 0 and ind_x != h and ind_y != 0 and ind_y != w:
+                block[i, j] = canvas.original_image[ind_x, ind_y]
 
-        # convolve the block with mask and return the value of position of the agent
-        test = convolve2d(block, scharr, boundary='symm', mode='same')
-        test = np.absolute(test)
-        activity = test[1, 1]
-        return activity
+    # convolve the block with mask and return the value of position of the agent
+    test = convolve2d(block, scharr, boundary='symm', mode='same')
+    test = np.absolute(test)
+    activity = test[1, 1] > alpha
+    return activity
 
 
 def is_active_multiplication(agent, canvas, target_color, alpha):
@@ -115,7 +119,7 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
             break
         print("epoch: ", epoch)
         for agent in agent_locs:
-            if is_active(agent, canvas, target_color, alpha):
+            if is_active_convolution(agent, canvas, target_color, alpha):
                 agent[2] = True
                 active_agents += 1
 
@@ -135,7 +139,8 @@ def SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush):
                     agent[1] = trunc_gauss(active_agent_x, 5, 0, width - 1)
 
                     # Paint
-                    brush.color = canvas.original_image[active_agent_y, active_agent_x]
+                    # if is_active_convolution(agent, canvas, target_color, alpha):
+                    brush.color = [255,255,255]
                     brush.stroke(canvas, agent[0], agent[1])
 
                 else:
@@ -154,37 +159,30 @@ def color_distance(color1, color2):
     if not (len(color1) == len(color2) and len(color1) == 3):
         raise TypeError(f"Either of {color1} or {color2} is not a valid color.")
     return math.sqrt(sum([(color1[i] - color2[i])**2 for i in range(len(color1))]))
+#
+# def rgb2gray(rgb):
+#     return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
 
 
 if __name__ == "__main__":
 
     # Load input image
-    input_img = imageio.imread('Input_Images/Frogger_750.jpg')
+    input_img = color.rgb2gray(imageio.imread('Input_Images/Frogger_750.jpg'))
     height, width = input_img.shape[0], input_img.shape[1]
 
     # any brush strokes with a size above this value are not guaranteed to paint. Adjust as you see fit
     MAX_BRUSH_SIZE = 400
 
     # paper uses w*h / 5
-    num_agents = int((width * height) / 500)
+    num_agents = int((width * height) / 50)
     # maximum value of color distance that makes an agent happy
-    alpha = 20
-    brush_size = 12
+    alpha = 2
+    brush_size = 5
     # epochs per target color
-    epochs = 2
-    # number of colors to target and run SDS on
-    num_colors = 750
+    epochs = 50
 
     canvas = paint.Canvas(input_img, max_brush_size=MAX_BRUSH_SIZE)
 
-
-    # Extension toggles
-    brushsize_annealing = True
-    used_colors_alpha = 0 # The minimum color distance from all used colors for a new target color to be accepted. Set to <0 if repeats are okay.
-
-
-    if brushsize_annealing:
-        brush_size *= 2
 
     # Initialize brush
     brush = paint.BrushRound(brush_size, [0, 0, 0], opacity=1)
@@ -192,7 +190,6 @@ if __name__ == "__main__":
     # brush = paint.BrushSquare(brush_size, [0, 0, 0], opacity=0.2, opacity_falloff='cornered')
     # brush = paint.BrushSquare(brush_size, [0, 0, 0], opacity=1, opacity_falloff='linear')
 
-    used_colors = []
     gif_images = []
 
     # Use a seed to be able to reproduce results
@@ -201,36 +198,16 @@ if __name__ == "__main__":
     random.seed(seed)
 
 
-    for i in range(num_colors):
+    # Initialize agents
+    agent_locs = [[x, y, False] for _ in range(num_agents) for x in random.choices(range(height)) for y in
+                  random.choices(range(width))]
 
-        # Initialize agents
-        agent_locs = [[x, y, False] for _ in range(num_agents) for x in random.choices(range(height)) for y in
-                      random.choices(range(width))]
+    target_color = [255,255,255]
 
-        """Target color selection"""
-
-        # Color is randomly sampled from the input image
-        y = random.randint(0, height - 1)
-        x = random.randint(0, width - 1)
-        target_color = input_img[y][x]
-
-        while not all(color_distance(target_color, used_color) > used_colors_alpha for used_color in used_colors):
-            y = random.randint(0, height - 1)
-            x = random.randint(0, width - 1)
-            target_color = input_img[y][x]
-        else:
-            used_colors.append(target_color)
-
-        """Running SDS"""
-
-        canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush)
-
-        print(f"Painted color {i+1}: {target_color}.")
-
-        if brushsize_annealing:
-            brush.resize(int(brush_size * (1 - (i/num_colors))))
+    """Running SDS"""
+    canvas = SDS(agent_locs, num_agents, target_color, alpha, canvas, epochs, brush)
 
     display_image(canvas.get_image())
-    imageio.imwrite("result_mao1.png", canvas.get_image())
+    imageio.imwrite("result.png", canvas.get_image())
 
     make_gif(gif_images)
